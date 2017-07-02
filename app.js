@@ -18,6 +18,12 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended: true}));
 app.use(validator());
 
+app.use(session({
+  secret: 'I Love Pie',
+  resave: false,
+  saveUninitialized: false
+}));
+
 app.set('layout', 'main');
 
 
