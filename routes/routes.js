@@ -30,18 +30,31 @@ router.post('/signUp', function(req, res){
         res.redirect('/signUp');
       })
     }else {
-  //saving sign up information
-  var newUsers = {
-  name: req.body.NewUsername,
-  password: req.body.NewPassword
+      models.users.findOne({
+        where:{
+          name: req.body.NewUsername,
+          password: req.body.NewPassword
+        }
+      }).then(function(userExist){
+        if(userExist){
+          messages = ['The Username and/or Password already exist.'];
+          res.redirect('/signUp');
+        }
+        else {
+          //saving sign up information
+          var newUsers = {
+          name: req.body.NewUsername,
+          password: req.body.NewPassword
 
-  }
-  //How I saved the input information to the SQL table.
-  var userInfo = models.users.build(newUsers);
-    userInfo.save().then(function(){
-      res.redirect('/userPage');
-    })
-  }
+          }
+          //How I saved the input information to the SQL table.
+          var userInfo = models.users.build(newUsers);
+            userInfo.save().then(function(){
+              res.redirect('/userPage');
+            });
+        }
+        });
+    }
 });
 
 router.get('/login', function(req, res){
@@ -63,6 +76,9 @@ router.post('/logMeIn', function(req, res){
     }
   }).then(function(user){
     console.log(user);
+    req.session.username = user;
+    console.log(req.sesson);
+
     if(req.body.username === user.name){
       res.redirect('/userPage');
     }else{
@@ -89,6 +105,11 @@ router.get('/userPage', function(req, res){
 router.post('/main', function(req, res){
   res.redirect('/main');
 });
+
+router.get('/logout', function(req, res){
+  req.session.destroy();
+  res.redirect('/login');
+})
 
 
 module.exports = router;
