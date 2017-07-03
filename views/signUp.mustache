@@ -3,10 +3,13 @@
 
     <div id="Form_1_Div">
       <form id="SignUpForm" action="/signUp" method="post">
+          {{#errors}}
+          <p>{{.}}</p>
+          {{/errors}}
         <input type="text" name="NewUsername" placeholder="Username">
         <br>
         <br>
-        <input type="text" name="NewPassword" placeholder="Password">
+        <input type="password" name="NewPassword" placeholder="Password">
         <br>
         <br>
         <button type="submit" name="button">Submit !</button>

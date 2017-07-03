@@ -1,11 +1,11 @@
 const bodyParser = require('body-parser');
 const express = require('express');
 const session = require('express-session');
-const validator = require('express-validator');
 const mustache = require('mustache');
 const mustacheExpress = require('mustache-express');
 const path = require('path');
 const routes = require('./routes/routes.js');
+const validator = require('express-validator');
 
 const app = express();
 
