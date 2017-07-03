@@ -63,25 +63,30 @@ router.get('/login', function(req, res){
 
   res.redirect('/userPage');
 }else {
-  res.render('login');
+  res.render('login', {error: messages});
 }
 });
       //Login Post
 router.post('/logMeIn', function(req, res){
-
+  messages = [];
     //Check to see if User is logged in.
   models.users.findOne({
     where:{
-      name: req.body.username
+      name: req.body.username,
+      password: req.body.password
     }
   }).then(function(user){
     console.log(user);
-    req.session.username = user;
-    console.log(req.sesson);
-
-    if(req.body.username === user.name){
+    req.session.username = user.name;
+    req.session.password = user.password;
+    console.log("req.session",req.session);
+    if(!user){
+      messages = ['Please try again. User / password does not exist.'];
+        res.redirect('/login');
+    }else if(req.body.password === user.password){
       res.redirect('/userPage');
     }else{
+      messages = ['Please try again. User / password does not exist.'];
       res.redirect('/login');
     }
   })
