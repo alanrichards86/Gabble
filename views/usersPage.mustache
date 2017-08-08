@@ -4,8 +4,31 @@
 <br>
 Feel free to leave a comment or "like" someone elses. Have fun !</p>
 
-<br>
 
-<form class="" action="" method="post">
+<div class="profile_page">
+{{#username}}
+<h1>display_name: {{.}}</h1>
+{{/username}}
 
+<h1>posts</h1>
+
+{{#post}}
+<div class="message_area">
+<p>message by: {{the_user}}</p>
+<p>{{body}}</p>
+{{#can_delete}}
+<form class="" action="/{{id}}/delete" method="post">
+  <button type="submit" name="button">Delete</button>
 </form>
+{{/can_delete}}
+
+<form class="" action="/{{id}}/like" method="post">
+  <button type="submit" name="button">like</button>
+</form>
+
+<form class="" action="/{{id}}/wholiked" method="post">
+  <p><button type="submit" name="button">likes:</button>{{likes}}</p>
+</form>
+</div>
+{{/post}}
+</div>

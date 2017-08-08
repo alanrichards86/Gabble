@@ -2,6 +2,80 @@ const express = require('express');
 const router = express.Router();
 const models = require("../models");
 
+let myMessages;
+let user_message;
+let Messages;
+let userid;
+let theLikes = [];
+let the_user;
+
+
+
+
+const the_likes = function (req,res,next) {
+  theLikes = [];
+  models.likes.findAll({
+    where: {
+      messageId: req.params.messageId
+    }
+  }).then(function (likes) {
+    // console.log(likes);
+    likes.forEach(function (like) {
+      models.users.findById(like.userid).then(function(user) {
+        // console.log(user);
+        console.log('theLikes LENGTH: ',theLikes.length);
+        theLikes.push(user.name);
+      })
+      })
+    next();
+  });
+}
+
+router.get("/userPage",  function(req, res) {
+
+  Messages = [];
+  if (req.session.username) {
+    models.comments.findAll({
+      include: [{
+        model: models.users,
+        as: "users"
+      }, {
+        model: models.likes,
+        as: "likes"
+      }],
+      order: [
+        ["createdAt", "DESC"]
+      ]
+    }).then(function(messages) {
+      messages.forEach(function(message) {
+        console.log("this is user" , message);
+        user_message = {
+          id: message.id,
+          body: message.body,
+          userid: message.userid,
+          the_user: message.dataValues.userName,
+          likes: message.likes.length,
+          was_liked: false,
+          can_delete: false
+        }
+
+        Messages.push(user_message);
+      });
+    }).then(function(message_array) {
+      Messages.forEach(function(message) {
+        if (message.userid === userid) {
+          message.can_delete = true;
+        }
+      })
+      // console.log();
+      // console.log();
+      res.render("usersPage", {username: req.session.username,post: Messages , theLikes});
+    });
+  } else {
+    res.redirect("/login");
+  }
+});
+
 router.get('/', function(req, res){
   res.redirect('/login');
 });
@@ -68,6 +142,7 @@ router.get('/login', function(req, res){
 });
       //Login Post
 router.post('/logMeIn', function(req, res){
+
   messages = [];
     //Check to see if User is logged in.
   models.users.findOne({
@@ -75,20 +150,23 @@ router.post('/logMeIn', function(req, res){
       name: req.body.username,
       password: req.body.password
     }
-  }).then(function(user){
-    console.log(user);
+  }).then(user => {
+    if(user){
+    console.log('LOOKY HERE', user);
     req.session.username = user.name;
     req.session.password = user.password;
-    console.log("req.session",req.session);
-    if(!user){
-      messages = ['Please try again. User / password does not exist.'];
-        res.redirect('/login');
-    }else if(req.body.password === user.password){
-      res.redirect('/userPage');
-    }else{
+    // console.log("req.session",req.session);
+     res.redirect('/userPage');
+
+  }else{
       messages = ['Please try again. User / password does not exist.'];
       res.redirect('/login');
+    // else if(req.body.password === user.password){
+    // }else{
+    //   messages = ['Please try again. User / password does not exist.'];
+    //   return res.redirect('/login');
     }
+
   })
       //Need to add change to "loggedIn" to true.
       //When Logged out "loggedIn" will be changed to false.
@@ -115,6 +193,37 @@ router.get('/logout', function(req, res){
   req.session.destroy();
   res.redirect('/login');
 })
+
+// ------------------------Create Messages---------------------
+
+router.get("/createMessage", function(req, res) {
+  res.render("createMessage", {
+    username: req.session.username
+  });
+});
+
+router.post("/createMessage", function(req, res) {
+  console.log('Im Here!');
+  myMessages = {
+    body: req.body.message_box,
+    userid: userid,
+    user: models.users.findOne({
+      where: {
+        id: userid
+      }
+    }).then(function(info) {
+      if (info) {
+        user = info.username;
+        // console.log("the user name is:" + user);
+      }
+    })
+  }
+  models.comments.create(myMessages).then(function(message) {
+    res.redirect("userPage");
+  });
+
+
+});
 
 
 module.exports = router;
