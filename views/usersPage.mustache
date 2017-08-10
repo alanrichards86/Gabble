@@ -5,9 +5,9 @@
 Feel free to leave a comment or "like" someone elses. Have fun !</p>
 
 
-<div class="profile_page">
+<div class="userPage">
 {{#username}}
-<h1>display_name: {{.}}</h1>
+<h1>Signed in as: {{.}}</h1>
 {{/username}}
 
 <h1>posts</h1>
@@ -17,16 +17,16 @@ Feel free to leave a comment or "like" someone elses. Have fun !</p>
 <p>message by: {{the_user}}</p>
 <p>{{body}}</p>
 {{#can_delete}}
-<form class="" action="/{{id}}/delete" method="post">
+<form action="/{{id}}/delete" method="post">
   <button type="submit" name="button">Delete</button>
 </form>
 {{/can_delete}}
 
-<form class="" action="/{{id}}/like" method="post">
+<form action="/{{id}}/like" method="post">
   <button type="submit" name="button">like</button>
 </form>
 
-<form class="" action="/{{id}}/wholiked" method="post">
+<form action="/{{id}}/wholiked" method="post">
   <p><button type="submit" name="button">likes:</button>{{likes}}</p>
 </form>
 </div>

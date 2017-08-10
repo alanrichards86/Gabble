@@ -9,21 +9,29 @@ let userid;
 let theLikes = [];
 let the_user;
 
-
-
+const getMessageId = function(req, res, next) {
+  models.Comment.findById(req.params.commentId).then(function(action) {
+    if (action) {
+      req.action = action;
+      next();
+    } else {
+      res.status(404).send("not found");
+    }
+  });
+}
 
 const the_likes = function (req,res,next) {
   theLikes = [];
-  models.likes.findAll({
+  models.Like.findAll({
     where: {
-      messageId: req.params.messageId
+      commentId: req.params.commentId
     }
   }).then(function (likes) {
     // console.log(likes);
-    likes.forEach(function (like) {
-      models.users.findById(like.userid).then(function(user) {
+    Like.forEach(function (like) {
+      models.User.findById(like.userid).then(function(user) {
         // console.log(user);
-        console.log('theLikes LENGTH: ',theLikes.length);
+        // console.log('theLikes LENGTH: ',theLikes.length);
         theLikes.push(user.name);
       })
       })
@@ -35,26 +43,26 @@ router.get("/userPage",  function(req, res) {
 
   Messages = [];
   if (req.session.username) {
-    models.comments.findAll({
+    models.Comment.findAll({
       include: [{
-        model: models.users,
-        as: "users"
+        model: models.User,
+        as: "User"
       }, {
-        model: models.likes,
-        as: "likes"
+        model: models.Like,
+        as: "Like"
       }],
       order: [
         ["createdAt", "DESC"]
       ]
     }).then(function(messages) {
       messages.forEach(function(message) {
-        console.log("this is user" , message);
+        console.log("THIS IS USER!", message.dataValues);
         user_message = {
           id: message.id,
           body: message.body,
           userid: message.userid,
-          the_user: message.dataValues.userName,
-          likes: message.likes.length,
+          the_user: message.name,
+          Like: message.Like.length,
           was_liked: false,
           can_delete: false
         }
@@ -104,7 +112,7 @@ router.post('/signUp', function(req, res){
         res.redirect('/signUp');
       })
     }else {
-      models.users.findOne({
+      models.User.findOne({
         where:{
           name: req.body.NewUsername,
           password: req.body.NewPassword
@@ -122,7 +130,7 @@ router.post('/signUp', function(req, res){
 
           }
           //How I saved the input information to the SQL table.
-          var userInfo = models.users.build(newUsers);
+          var userInfo = models.User.build(newUsers);
             userInfo.save().then(function(){
               res.redirect('/userPage');
             });
@@ -145,14 +153,14 @@ router.post('/logMeIn', function(req, res){
 
   messages = [];
     //Check to see if User is logged in.
-  models.users.findOne({
+  models.User.findOne({
     where:{
       name: req.body.username,
       password: req.body.password
     }
   }).then(user => {
     if(user){
-    console.log('LOOKY HERE', user);
+    // console.log('LOOKY HERE', user.dataValues);
     req.session.username = user.name;
     req.session.password = user.password;
     // console.log("req.session",req.session);
@@ -178,7 +186,7 @@ router.post('/logMeIn', function(req, res){
 
             //UserPage
 router.get('/userPage', function(req, res){
-  models.users.findAll().then(function(userInfo){
+  models.User.findAll().then(function(userInfo){
   //     //UserPage rendered with table data.
     res.render('usersPage', {userStuff: userInfo});
   })
@@ -203,14 +211,17 @@ router.get("/createMessage", function(req, res) {
 });
 
 router.post("/createMessage", function(req, res) {
-  console.log('Im Here!');
+  console.log('Im Here!', req.session.username);
+
   myMessages = {
     body: req.body.message_box,
     userid: userid,
-    user: models.users.findOne({
+    username: req.session.username,
+    user: models.User.findOne({
       where: {
         id: userid
       }
+
     }).then(function(info) {
       if (info) {
         user = info.username;
@@ -218,12 +229,16 @@ router.post("/createMessage", function(req, res) {
       }
     })
   }
-  models.comments.create(myMessages).then(function(message) {
+  console.log('This is hopefully Working', myMessages.username);
+
+  models.Comment.create(myMessages).then(function(message) {
     res.redirect("userPage");
   });
-
-
 });
+
+
+// ----------------- Likes Section -------------------
+
 
 
 module.exports = router;
